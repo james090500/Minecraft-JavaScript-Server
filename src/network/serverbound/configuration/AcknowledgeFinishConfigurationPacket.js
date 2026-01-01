@@ -1,5 +1,5 @@
 import { log } from 'console'
-import FinishConfigurationPacket from '../../clientbound/configuration/FinishConfigurationPacket.js'
+import SyncPlayerPositionPacket from '../../clientbound/play/SyncPlayerPositionPacket.js'
 import logger from '../../utils/Logger.js'
 import LoginPlayPacket from '../../clientbound/play/LoginPlayPacket.js'
 
@@ -9,5 +9,10 @@ export default {
         connection.setPhase(5) // Switch to Play state
 
         LoginPlayPacket.handle(connection)
+
+        SyncPlayerPositionPacket.handle(connection)
+
+        // Set centre chunk
+        // send chunk data
     },
 }

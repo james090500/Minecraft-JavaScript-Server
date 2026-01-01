@@ -4,8 +4,8 @@ import GameProfile from '../../utils/GameProfile.js'
 export default {
     handle(socket) {
         const profile = new GameProfile(
-            '00000000-0000-0000-0000-000000000000',
-            'Player'
+            'ba4161c0-3a42-496c-8ae0-7d13372f3371',
+            'james090500'
         )
         const packetData = new MCBuffer()
         packetData.writeVarInt(0x02)

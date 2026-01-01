@@ -71,6 +71,18 @@ export default class MCBuffer {
         this.buffer = Buffer.concat([this.buffer, bytes])
     }
 
+    writeDouble(value) {
+        const buf = Buffer.alloc(8)
+        buf.writeDoubleBE(value)
+        this.buffer = Buffer.concat([this.buffer, buf])
+    }
+
+    writeFloat(value) {
+        const buf = Buffer.alloc(4)
+        buf.writeFloatBE(value)
+        this.buffer = Buffer.concat([this.buffer, buf])
+    }
+
     readUShort() {
         const value = this.buffer.readUInt16BE(this.offset)
         this.offset += 2
