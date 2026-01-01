@@ -1,0 +1,28 @@
+{
+    "name": "mcserver-test",
+    "version": "1.0.0",
+    "description": "A Javascript based Minecraft Server",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "npm ci && dotenvx run -- node index.js",
+        "dev": "dotenvx run -- nodemon index.js",
+        "format": "npm run lint && npm run prettier",
+        "lint": "eslint --fix",
+        "prettier": "prettier . --write"
+    },
+    "author": "james090500",
+    "license": "ISC",
+    "devDependencies": {
+        "eslint": "^9.39.2",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.4",
+        "globals": "^16.5.0",
+        "nodemon": "^3.1.11",
+        "prettier": "^3.7.4"
+    },
+    "dependencies": {
+        "@dotenvx/dotenvx": "^1.51.4",
+        "uuid": "^13.0.0",
+        "winston": "^3.19.0"
+    }
+}
