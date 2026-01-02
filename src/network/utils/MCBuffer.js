@@ -136,6 +136,87 @@ export default class MCBuffer {
         return uuidStringify(uuidBuffer)
     }
 
+    /**
+     * Writes a Minecraft "BitSet" (a VarInt length-prefixed long[]).
+     *
+     * Wire format (wiki.vg): VarInt longCount, then longCount × Long (8 bytes each).
+     * Bit index 0 is the least-significant bit of long[0].
+     *
+     * Usage examples:
+     *   // empty (all bits false)
+     *   buf.writeBitset([])
+     *
+     *   // bits 0 and 5 set
+     *   buf.writeBitset([0, 5])
+     *
+     *   // specify a fixed size (forces enough longs even if last bits are 0)
+     *   buf.writeBitset([0, 5], 256)
+     */
+    writeBitset(setBits = [], totalBits = null) {
+        // Allow passing a precomputed long array directly: { longs: BigInt[] }
+        if (
+            setBits &&
+            typeof setBits === 'object' &&
+            !Array.isArray(setBits) &&
+            Array.isArray(setBits.longs)
+        ) {
+            const longs = setBits.longs
+            this.writeVarInt(longs.length)
+            for (const w of longs) {
+                // Ensure signed 64-bit range for writeBigInt64BE
+                this.writeLong(BigInt.asIntN(64, BigInt(w)))
+            }
+            return
+        }
+
+        const bits = Array.isArray(setBits) ? setBits : []
+        let maxBit = -1
+        for (const b of bits) {
+            if (!Number.isInteger(b) || b < 0) {
+                throw new Error(`Invalid bit index for BitSet: ${b}`)
+            }
+            if (b > maxBit) maxBit = b
+        }
+
+        // Determine how many bits/words to write
+        const effectiveMaxBit =
+            totalBits == null ? maxBit : Math.max(maxBit, totalBits - 1)
+        const longCount =
+            effectiveMaxBit < 0 ? 0 : Math.floor(effectiveMaxBit / 64) + 1
+
+        // Empty bitset
+        if (longCount === 0) {
+            this.writeVarInt(0)
+            return
+        }
+
+        const words = new Array(longCount).fill(0n)
+        for (const b of bits) {
+            const wordIndex = Math.floor(b / 64)
+            const bitInWord = b % 64
+            words[wordIndex] |= 1n << BigInt(bitInWord)
+        }
+
+        this.writeVarInt(words.length)
+        for (const w of words) {
+            // Java longs are two's complement; on the wire it's just 8 bytes.
+            // Convert to signed 64-bit range so writeBigInt64BE always succeeds.
+            this.writeLong(BigInt.asIntN(64, w))
+        }
+    }
+
+    writeShort(value) {
+        const buf = Buffer.alloc(2)
+        buf.writeInt16BE(value)
+        this.buffer = Buffer.concat([this.buffer, buf])
+    }
+
+    writeEmptyNbtCompound() {
+        this.writeByte(0x0a) // TAG_Compound
+        this.writeShort(0) // name length = 0
+        this.writeByte(0x00) // TAG_End (end of compound payload)
+    }
+
     getBuffer() {
         return this.buffer
     }
